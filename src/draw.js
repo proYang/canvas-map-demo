@@ -192,6 +192,7 @@ class App {
             }
             $container.addEventListener('mousemove', mousemoveListener)
             $container.addEventListener('mouseup', mouseupListener)
+            $container.addEventListener('mouseleave', mouseupListener)
         })
     }
 

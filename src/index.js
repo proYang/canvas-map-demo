@@ -100,7 +100,3 @@ let mockServer3 = setInterval(() => {
         app.options.people[index].move.push(next)
     });
 }, 1000)
-
-setTimeout(function () {
-    console.log(JSON.stringify(app.options.people))
-}, 5000)
