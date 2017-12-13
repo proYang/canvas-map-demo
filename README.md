@@ -1,1 +1,1 @@
-#net-cap
+#canvas-map-demo
