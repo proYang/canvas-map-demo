@@ -12,9 +12,12 @@ const defaultOptions = {
     container: null, //创建canvas的容器，如果不填，自动在 body 上创建覆盖全屏的层
     people: [], // 人
     backgroundImage: undefined, // 背景图
-    imgScale: 1,
-    imgX: 0,
-    imgY: 0
+    imgScale: 1, // 放大倍数
+    imgX: 0, // 背景图拒canvas原点X方向距离
+    imgY: 0, // 背景图拒canvas原点Y方向距离
+    pointerX: 0,
+    pointerY: 0,
+    animation: undefined
 };
 
 class App {
@@ -28,13 +31,21 @@ class App {
         this.loadPeopleImg();
         if (this.isShowPath) this.drawMove();
         this.addEvent();
-
+        this.run();
     }
 
+    /**
+     * @public
+     */
     set showPath(val) {
         this.isShowPath = val
     }
 
+    /**
+     * @public 
+     * @desc 单次重绘canvas
+     * @param {*} context 
+     */
     updateCanvas(context) {
         // 重绘Canvas
         switch (context) {
@@ -194,6 +205,14 @@ class App {
             $container.addEventListener('mouseup', mouseupListener)
             $container.addEventListener('mouseleave', mouseupListener)
         })
+        $container.addEventListener('mousemove', () => {
+            let {
+                height
+            } = this.mapCanvas.getBoundingClientRect();
+            let pos = this.windowToCanvas(this.mapCanvas, event.clientX, event.clientY);
+            this.options.pointerX = pos.x
+            this.options.pointerY = pos.y
+        })
     }
 
     windowToCanvas(canvas, x, y) {
@@ -237,6 +256,9 @@ class App {
     drawMove() {
         //画移动轨迹
         let context = this.moveCanvas.getContext('2d');
+        let {
+            height
+        } = this.mapCanvas.getBoundingClientRect();
         this.options.people.forEach(({
             move,
             color
@@ -250,7 +272,26 @@ class App {
                     last = move[--index]
                 }
                 if (!color) 'red'
-                drawLine(context, color, last.x * this.options.imgScale + this.options.imgX, last.y * this.options.imgScale + this.options.imgY, current.x * this.options.imgScale + this.options.imgX, current.y * this.options.imgScale + this.options.imgY)
+                // last = {
+                //     x: last.x * this.options.imgScale + this.options.imgX,
+                //     y: last.y * this.options.imgScale + this.options.imgY
+                // }
+                // current = {
+                //     x: current.x * this.options.imgScale + this.options.imgX,
+                //     y: current.y * this.options.imgScale + this.options.imgY
+                // }
+                // 切换左下角为坐标原点
+                last = {
+                    x: last.x * this.options.imgScale + this.options.imgX,
+                    y: (height - last.y) * this.options.imgScale + this.options.imgY
+                }
+                current = {
+                    x: current.x * this.options.imgScale + this.options.imgX,
+                    y: (height - current.y) * this.options.imgScale + this.options.imgY
+                }
+                console.log(last)
+                console.log(current)
+                drawLine(context, color, last.x, last.y, current.x, current.y)
             }
         });
     }
@@ -260,22 +301,32 @@ class App {
             options,
             peopleCanvas,
             peopleImage
-        } = this
+        } = this;
+        let peopleImgWidth = 30;
+        let peopleImgHeight = 43;
         let context = peopleCanvas.getContext('2d');
+        let {
+            height
+        } = this.mapCanvas.getBoundingClientRect();
         this.clearCanvas(context);
         options.people.forEach(({
             move
         }) => {
-            // let position = {
-            //     x,
-            //     y
-            // }
             let position = move[move.length - 1]
-            context.drawImage(peopleImage, position.x * options.imgScale - 16 + this.options.imgX, position.y * options.imgScale - 16 + this.options.imgY, 30, 43);
-            // context.drawImage(peopleImage, 0, 0, peopleImage.width * options.imgScale, peopleImage.height * options.imgScale, person.x * options.imgScale, person.y * options.imgScale, peopleImage.width * options.imgScale, peopleImage.height * options.imgScale);
+            // position = {
+            //     x: position.x * options.imgScale - peopleImgWidth / 2 + this.options.imgX,
+            //     y: position.y * options.imgScale - peopleImgHeight / 2 + this.options.imgY
+            // }
+            // 切换左下角为坐标原点
+            position = {
+                x: position.x * options.imgScale + this.options.imgX - peopleImgWidth / 2,
+                y: (height - position.y) * options.imgScale + this.options.imgY - peopleImgHeight / 2
+            }
+            context.drawImage(peopleImage, position.x, position.y, peopleImgWidth, peopleImgHeight);
         });
     }
     /**
+     * @private
      * @desc 清除{context}画布
      * @param {*} context 
      */
@@ -296,6 +347,16 @@ class App {
             moveCanvas.clearRect(0, 0, width, height);
             peopleCanvas.clearRect(0, 0, width, height);
         }
+    }
+    run() {
+        // 动画
+        if (this.options.animation) return
+        let step = () => {
+            this.updateCanvas('people')
+            this.updateCanvas('move')
+            this.options.animation = requestAnimationFrame(step)
+        }
+        this.options.animation = requestAnimationFrame(step)
     }
 }
 

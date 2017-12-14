@@ -6,7 +6,6 @@ import {
 const $app = document.querySelector('#app')
 const $bg = document.querySelector('#bg')
 const $people = document.querySelector('#people')
-const $ruler = document.querySelector('.J_ruler')
 
 
 const options = {
@@ -51,20 +50,19 @@ document.querySelector('.J_hidden').addEventListener('click', () => {
 })
 
 // 比例尺
+const $ruler = document.querySelector('.J_ruler')
 $ruler.innerHTML = `x${app.options.imgScale} 倍`
 $app.addEventListener('mousewheel', () => {
     $ruler.innerHTML = `x${app.options.imgScale} 倍`
 })
 
-// 动画
-let animation
-let step = () => {
-    app.updateCanvas('people')
-    app.updateCanvas('move')
-    animation = requestAnimationFrame(step)
-}
-animation = requestAnimationFrame(step)
-
+// 鼠标坐标
+const $pointerX = document.querySelector('.J_pointer-x')
+const $pointerY = document.querySelector('.J_pointer-y')
+$app.addEventListener('mousemove', () => {
+    $pointerX.innerHTML = `X:${app.options.pointerX}`
+    $pointerY.innerHTML = `Y:${app.options.pointerY}`
+})
 
 // 数据模拟器
 let mockServer1 = setInterval(() => {
