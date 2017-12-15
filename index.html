@@ -42,13 +42,12 @@
         }
 
         .console>footer {
-            margin-top: 150px;
+            margin-top: 50px;
             text-align: center;
         }
 
         .ruler {
             display: inline;
-            width: 110px;
             padding: 0 30px;
             border: 1px solid #333;
             border-top: none;
@@ -64,6 +63,9 @@
 
         .button {
             outline: none;
+        }
+        .tips {
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -85,8 +87,17 @@
                 <button type="button" class="J_hidden btn btn-warning">关闭轨迹</button>
             </div>
             <div class="row_right">
+                <button type="button" class="J_measure btn btn-primary">测距</button>
+            </div>
+            <div class="row_right">
+                <button type="button" class="J_measure-cancel btn btn-warning">清除测距</button>
+            </div>
+            <div class="row_right">
                 <div class="J_pointer-x">X: 0</div>
                 <div class="J_pointer-y">Y: 0</div>
+                <div class="tips">
+                    提示：单击选点开始测距，双击结束测距
+                </div>
             </div>
         </footer>
     </div>

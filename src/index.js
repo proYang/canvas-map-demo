@@ -40,7 +40,6 @@ document.querySelector('.J_add').addEventListener('click', () => {
 // 是否展示运动轨迹
 app.showPath = true
 document.querySelector('.J_show').addEventListener('click', () => {
-    console.log(app.options.people)
     app.showPath = true
     app.updateCanvas('move')
 })
@@ -62,6 +61,17 @@ const $pointerY = document.querySelector('.J_pointer-y')
 $app.addEventListener('mousemove', () => {
     $pointerX.innerHTML = `X:${app.options.pointerX}`
     $pointerY.innerHTML = `Y:${app.options.pointerY}`
+})
+
+
+const $measure = document.querySelector('.J_measure')
+$measure.addEventListener('click', () => {
+    app.measure()
+})
+const $measureCancel = document.querySelector('.J_measure-cancel')
+$measureCancel.addEventListener('click', () => {
+    app.options.measure = []
+    app.updateCanvas('measure')
 })
 
 // 数据模拟器
