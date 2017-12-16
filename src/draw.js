@@ -1,5 +1,5 @@
 //画线段
-function drawLine(ctx, color, x1, y1, x2, y2, scale) {
+function drawLine(ctx, color, x1, y1, x2, y2) {
     ctx.strokeStyle = color;
     ctx.beginPath();
     ctx.lineWidth = 2;
@@ -9,7 +9,7 @@ function drawLine(ctx, color, x1, y1, x2, y2, scale) {
     ctx.closePath();
 }
 //画空心圆
-function drawCircle(ctx, color, x, y, radius, scale) {
+function drawCircle(ctx, color, x, y, radius) {
     //画一个空心圆
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, 360, false);
@@ -56,7 +56,7 @@ class App {
         this.render();
         this.loadBgImg();
         this.loadPeopleImg();
-        if (this.isShowPath) this.drawMove();
+        this.drawMove();
         this.addEvent();
         this.run();
     }
@@ -96,7 +96,7 @@ class App {
                 break;
             case 'move':
                 this.clearCanvas(this.moveCanvas.getContext('2d'))
-                if (this.isShowPath) this.drawMove();
+                this.drawMove();
                 break;
             case 'measure':
                 this.clearCanvas(this.measureCanvas.getContext('2d'))
@@ -106,7 +106,7 @@ class App {
                 this.drawMap();
                 this.drawPeople();
                 this.clearCanvas(this.moveCanvas.getContext('2d'))
-                if (this.isShowPath) this.drawMove();
+                this.drawMove();
                 break;
             default:
                 break;
@@ -176,6 +176,10 @@ class App {
         let mousemoveListener = event => {
             $container.style.cursor = "pointer";
             let pos = this.windowToCanvas(this.measureCanvas, event.clientX, event.clientY);
+            pos = {
+                x: (pos.x - this.options.imgX) / this.options.imgScale,
+                y: (pos.y - this.options.imgY) / this.options.imgScale
+            }
             // console.log(pos)
             // drawCircle(this.measureCanvas.getContext('2d'), '#ff6922', pos.x, pos.y, 5)
             // 未选择第一个点，直接return
@@ -206,14 +210,16 @@ class App {
                 $container.removeEventListener('mousemove', mousemoveListener)
                 $container.removeEventListener('click', clickListener)
                 this.options.isMeasuring = false
-                clickNum === 0
+                clickNum = 0
                 clickTime = 0
             } else {
                 let pos = this.windowToCanvas(this.measureCanvas, event.clientX, event.clientY);
                 // 单击开始测距
-                // drawCircle(this.measureCanvas.getContext('2d'), '#ff6922', pos.x, pos.y, 5)
-                // console.log(pos)
-                // console.log(pos.x * this.options.imgScale + this.options.imgX, pos.y * this.options.imgScale + this.options.imgY)
+                // console.log((pos.x - this.options.imgX) / this.options.imgScale, (pos.y - this.options.imgY) / this.options.imgScale)
+                pos = {
+                    x: (pos.x - this.options.imgX) / this.options.imgScale,
+                    y: (pos.y - this.options.imgY) / this.options.imgScale
+                }
                 if (clickNum === 0) {
                     // 第一次单击
                     let obj = {
@@ -302,7 +308,7 @@ class App {
             this.clearCanvas(this.measureCanvas.getContext('2d'))
             this.drawMeasure();
             this.clearCanvas(this.moveCanvas.getContext('2d'))
-            if (this.isShowPath) this.drawMove();
+            this.drawMove();
 
         })
         // 地图移动
@@ -323,7 +329,7 @@ class App {
                 this.clearCanvas(this.measureCanvas.getContext('2d'))
                 this.drawMeasure();
                 this.clearCanvas(this.moveCanvas.getContext('2d'))
-                if (this.isShowPath) this.drawMove();
+                this.drawMove();
             }
             let mouseupListener = event => {
                 judgeBorder()
@@ -331,7 +337,7 @@ class App {
                 this.drawPeople();
                 // 重绘测距图层
                 this.clearCanvas(this.moveCanvas.getContext('2d'))
-                if (this.isShowPath) this.drawMove();
+                this.drawMove();
                 $container.removeEventListener('mousemove', mousemoveListener)
                 $container.removeEventListener('mouseup', mouseupListener)
                 $container.style.cursor = "default";
@@ -390,6 +396,7 @@ class App {
     }
 
     drawMove() {
+        if (this.isShowPath !== true) return
         //画移动轨迹
         let context = this.moveCanvas.getContext('2d');
         let {
