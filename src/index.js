@@ -13,7 +13,7 @@ const options = {
     container: $app,
     people: [],
     backgroundImage: './assert/images/map.jpg',
-    peopleImage: './assert/images/people1.jpg'
+    peopleImage: ['./assert/images/people-1.png', './assert/images/people-2.png', './assert/images/people-3.png']
 }
 let app = new App(options)
 
@@ -31,6 +31,7 @@ function mockPeopleServer() {
         let y = randomNum(0, height)
         people.push({
             id: id++,
+            imgIndex: randomNum(0, 2),
             name: Random.cname(),
             color: randomColor(),
             move: [{
@@ -64,23 +65,23 @@ document.querySelector('.J_add').addEventListener('click', () => {
 })
 
 // 是否展示运动轨迹
-let mockServer4
+// let mockServer4
 document.querySelector('.J_show').addEventListener('click', () => {
     document.querySelector('.J_add').click()
-    clearInterval(mockServer4)
+    // clearInterval(mockServer4)
     app.showPath = !app.showPath
 
-    let people = deepClone(app.options.people);
-    app.options.people.forEach((person, index, array) => {
-        array[index].move = []
-    })
-    mockServer4 = setInterval(() => {
-        people.forEach((person, index, array) => {
-            let point = array[index].move.shift()
-            if (point === undefined) return
-            app.options.people[index].move.push(point)
-        })
-    }, 200)
+    // let people = deepClone(app.options.people);
+    // app.options.people.forEach((person, index, array) => {
+    //     array[index].move = []
+    // })
+    // mockServer4 = setInterval(() => {
+    //     people.forEach((person, index, array) => {
+    //         let point = array[index].move.shift()
+    //         if (point === undefined) return
+    //         app.options.people[index].move.push(point)
+    //     })
+    // }, 200)
     // app.updateCanvas('move')
 })
 
@@ -120,6 +121,7 @@ $measureCancel.addEventListener('click', () => {
 //             y: last.y + randomNum(-10, 10)
 //         }
 //         app.options.people[index].move.push(next)
+//         if (length > 70) app.options.people[index].move.shift()
 //     });
 // }, 500)
 // let mockServer2 = setInterval(() => {
@@ -131,6 +133,7 @@ $measureCancel.addEventListener('click', () => {
 //             y: last.y + randomNum(-10, 10)
 //         }
 //         app.options.people[index].move.push(next)
+//         if (length > 70) app.options.people[index].move.shift()
 //     });
 // }, 300)
 // let mockServer3 = setInterval(() => {
@@ -142,5 +145,6 @@ $measureCancel.addEventListener('click', () => {
 //             y: last.y + randomNum(-10, 10)
 //         }
 //         app.options.people[index].move.push(next)
+//         if (length > 70) app.options.people[index].move.shift()
 //     });
 // }, 1000)

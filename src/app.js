@@ -358,12 +358,25 @@ class App {
         })
     }
     loadPeopleImg() {
-        let img = new Image();
-        img.src = this.options.peopleImage;
-        this.peopleImage = img
-        img.addEventListener('load', () => {
-            this.drawPeople()
+        let imgArr
+        if (typeof this.options.peopleImage === 'string') {
+            imgArr = [this.options.peopleImage]
+        } else if (Array.isArray(this.options.peopleImage)) {
+            imgArr = this.options.peopleImage
+        } else throw 'Type [options.peopleImage] can not support'
+        let loadNum = 0;
+        let peopleImage = imgArr.map((src) => {
+            let img = new Image();
+            img.src = src;
+            img.addEventListener('load', () => {
+                loadNum++
+                if (loadNum === imgArr.length) {
+                    this.drawPeople()
+                }
+            })
+            return img
         })
+        this.peopleImage = peopleImage
     }
     /**
      * @desc 画背景地图
@@ -432,6 +445,7 @@ class App {
             move,
             name,
             id,
+            imgIndex,
             showInfo
         }) => {
             if (move.length === 0) return
@@ -447,7 +461,7 @@ class App {
                     id
                 })
             }
-            context.drawImage(peopleImage, position.x, position.y, peopleImgWidth, peopleImgHeight);
+            context.drawImage(peopleImage[imgIndex], position.x, position.y, peopleImgWidth, peopleImgHeight);
         });
     }
 
