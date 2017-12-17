@@ -1,51 +1,87 @@
-import App from './draw.js'
+import App from './app.js'
+import {
+    Random
+} from 'mockjs'
 import {
     randomNum,
-    randomColor
+    randomColor,
+    deepClone
 } from 'outils';
 const $app = document.querySelector('#app')
-const $bg = document.querySelector('#bg')
-const $people = document.querySelector('#people')
-
 
 const options = {
     container: $app,
     people: [],
-    backgroundImage: $bg.getAttribute('src'),
-    peopleImage: $people.getAttribute('src')
+    backgroundImage: './assert/images/map.jpg',
+    peopleImage: './assert/images/people1.jpg'
 }
 let app = new App(options)
 
-// 添加机器人
-document.querySelector('.J_add').addEventListener('click', () => {
+function mockPeopleServer() {
+    let people = []
     let {
         width,
         height
     } = $app.getBoundingClientRect();
-    let x = randomNum(0, width)
-    let y = randomNum(0, height)
-    options.people.push({
-        name: 'yxl',
-        color: randomColor(),
-        move: [{
-            x,
-            y
-        }]
-    })
+    let peopleNum = randomNum(5, 15)
+    // 添加人
+    let id = 1000
+    for (let i = 0; i < peopleNum; i++) {
+        let x = randomNum(0, width)
+        let y = randomNum(0, height)
+        people.push({
+            id: id++,
+            name: Random.cname(),
+            color: randomColor(),
+            move: [{
+                x,
+                y
+            }]
+        })
+    }
+    // 模拟运动轨迹
+    people.forEach((person, index) => {
+        let moveNum = randomNum(50, 100)
+        for (let i = 0; i < moveNum; i++) {
+            let last = person.move[person.move.length - 1]
+            let next = {
+                x: last.x + randomNum(-12, 12),
+                y: last.y + randomNum(-12, 12)
+            }
+            people[index].move.push(next)
+        }
+    });
+    return people
+}
+let mockPeople = mockPeopleServer()
+// 实时位置
+document.querySelector('.J_add').addEventListener('click', () => {
+
+    app.options.people = mockPeople
     // 重绘轨迹，人
-    app.updateCanvas('people')
-    app.updateCanvas('move')
+    // app.updateCanvas('people')
+    // app.updateCanvas('move')
 })
 
 // 是否展示运动轨迹
-app.showPath = true
+let mockServer4
 document.querySelector('.J_show').addEventListener('click', () => {
-    app.showPath = true
-    app.updateCanvas('move')
-})
-document.querySelector('.J_hidden').addEventListener('click', () => {
-    app.showPath = false
-    app.updateCanvas('move')
+    document.querySelector('.J_add').click()
+    clearInterval(mockServer4)
+    app.showPath = !app.showPath
+
+    let people = deepClone(app.options.people);
+    app.options.people.forEach((person, index, array) => {
+        array[index].move = []
+    })
+    mockServer4 = setInterval(() => {
+        people.forEach((person, index, array) => {
+            let point = array[index].move.shift()
+            if (point === undefined) return
+            app.options.people[index].move.push(point)
+        })
+    }, 200)
+    // app.updateCanvas('move')
 })
 
 // 比例尺
@@ -75,36 +111,36 @@ $measureCancel.addEventListener('click', () => {
 })
 
 // 数据模拟器
-let mockServer1 = setInterval(() => {
-    app.options.people.forEach((person, index) => {
-        let length = person.move.length
-        let last = person.move[--length]
-        let next = {
-            x: last.x + randomNum(-10, 10),
-            y: last.y + randomNum(-10, 10)
-        }
-        app.options.people[index].move.push(next)
-    });
-}, 500)
-let mockServer2 = setInterval(() => {
-    app.options.people.forEach((person, index) => {
-        let length = person.move.length
-        let last = person.move[--length]
-        let next = {
-            x: last.x + randomNum(-10, 10),
-            y: last.y + randomNum(-10, 10)
-        }
-        app.options.people[index].move.push(next)
-    });
-}, 300)
-let mockServer3 = setInterval(() => {
-    app.options.people.forEach((person, index) => {
-        let length = person.move.length
-        let last = person.move[--length]
-        let next = {
-            x: last.x + randomNum(-10, 10),
-            y: last.y + randomNum(-10, 10)
-        }
-        app.options.people[index].move.push(next)
-    });
-}, 1000)
+// let mockServer1 = setInterval(() => {
+//     app.options.people.forEach((person, index) => {
+//         let length = person.move.length
+//         let last = person.move[--length]
+//         let next = {
+//             x: last.x + randomNum(-10, 10),
+//             y: last.y + randomNum(-10, 10)
+//         }
+//         app.options.people[index].move.push(next)
+//     });
+// }, 500)
+// let mockServer2 = setInterval(() => {
+//     app.options.people.forEach((person, index) => {
+//         let length = person.move.length
+//         let last = person.move[--length]
+//         let next = {
+//             x: last.x + randomNum(-10, 10),
+//             y: last.y + randomNum(-10, 10)
+//         }
+//         app.options.people[index].move.push(next)
+//     });
+// }, 300)
+// let mockServer3 = setInterval(() => {
+//     app.options.people.forEach((person, index) => {
+//         let length = person.move.length
+//         let last = person.move[--length]
+//         let next = {
+//             x: last.x + randomNum(-10, 10),
+//             y: last.y + randomNum(-10, 10)
+//         }
+//         app.options.people[index].move.push(next)
+//     });
+// }, 1000)

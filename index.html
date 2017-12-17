@@ -53,10 +53,6 @@
             border-top: none;
         }
 
-        .hidden {
-            display: none;
-        }
-
         .row_right {
             padding: 15px 0;
         }
@@ -64,6 +60,7 @@
         .button {
             outline: none;
         }
+
         .tips {
             margin-top: 20px;
         }
@@ -75,16 +72,13 @@
     <div class="console">
         <footer>
             <div class="row_right">
-                <div class="J_ruler ruler">x8倍</div>
+                <div class="J_ruler ruler">x1倍</div>
             </div>
             <div class="row_right">
-                <button type="button" class="J_add btn btn-primary">添加机器人</button>
+                <button type="button" class="J_add btn btn-primary">实时位置</button>
             </div>
             <div class="row_right">
-                <button type="button" class="J_show btn btn-primary">显示轨迹</button>
-            </div>
-            <div class="row_right">
-                <button type="button" class="J_hidden btn btn-warning">关闭轨迹</button>
+                <button type="button" class="J_show btn btn-primary">运动轨迹</button>
             </div>
             <div class="row_right">
                 <button type="button" class="J_measure btn btn-primary">测距</button>
@@ -100,10 +94,6 @@
                 </div>
             </div>
         </footer>
-    </div>
-    <div class="hidden">
-        <img id="bg" src="./assert/images/map.jpg" alt="" srcset="">
-        <img id="people" src="./assert/images/people.png" alt="" srcset="">
     </div>
     <script src="./dist/bundle.js"></script>
 </body>

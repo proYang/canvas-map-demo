@@ -1,37 +1,11 @@
-//画线段
-function drawLine(ctx, color, x1, y1, x2, y2) {
-    ctx.strokeStyle = color;
-    ctx.beginPath();
-    ctx.lineWidth = 2;
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-    ctx.closePath();
-}
-//画空心圆
-function drawCircle(ctx, color, x, y, radius) {
-    //画一个空心圆
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 360, false);
-    ctx.fillStyle = "#fff"; //填充颜色,默认是黑色
-    ctx.fill(); //画实心圆
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = color;
-    ctx.stroke(); //画空心圆
-    ctx.closePath();
-}
-
-function drawText(ctx, x, y, text) {
-    ctx.font = '14px Arial';
-    ctx.fillStyle = '#0099CC';
-    ctx.fillText(text, x + 5, y - 8);
-}
-// 勾股定理算距离
-function calculateLength(x1, y1, x2, y2) {
-    let x = x1 - x2;
-    let y = y1 - y2;
-    return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-}
+import {
+    drawCircle,
+    drawLine,
+    drawMeasureInfo,
+    drawPeopleInfo,
+    calculateLength,
+    directPeople
+} from './utils'
 
 const defaultOptions = {
     container: null, //创建canvas的容器，如果不填，自动在 body 上创建覆盖全屏的层
@@ -46,6 +20,8 @@ const defaultOptions = {
     animation: undefined,
     isMeasuring: false //正在测距
 };
+
+let isMoveMap = false // 正在拖拽移动地图
 
 class App {
     constructor(options = {}) {
@@ -66,6 +42,9 @@ class App {
      */
     set showPath(val) {
         this.isShowPath = val
+    }
+    get showPath() {
+        return this.isShowPath
     }
 
     /**
@@ -180,18 +159,10 @@ class App {
                 x: (pos.x - this.options.imgX) / this.options.imgScale,
                 y: (pos.y - this.options.imgY) / this.options.imgScale
             }
-            // console.log(pos)
-            // drawCircle(this.measureCanvas.getContext('2d'), '#ff6922', pos.x, pos.y, 5)
             // 未选择第一个点，直接return
             if (clickNum === 0) return
-            let pointer = this.options.measure[this.options.measure.length - 1].pointer
             let moveArr = this.options.measure[this.options.measure.length - 1].move
             let lastPoint = moveArr[moveArr.length - 1]
-            Object.assign(pointer, pos)
-            pos = {
-                x: pos.x,
-                y: pos.y
-            }
             if (moveNum === 0) {
                 moveArr.push(pos)
                 moveNum = 1
@@ -200,13 +171,13 @@ class App {
             }
         }
         let clickListener = event => {
+            if (isMoveMap) return
             $container.style.cursor = "pointer";
             let currentTime = new Date().getTime()
             if (currentTime - clickTime <= 300 && currentTime - clickTime >= 150) {
                 // 双击结束测距
                 let moveArr = this.options.measure[this.options.measure.length - 1].move
                 moveArr.pop()
-                console.log(this.options.measure)
                 $container.removeEventListener('mousemove', mousemoveListener)
                 $container.removeEventListener('click', clickListener)
                 this.options.isMeasuring = false
@@ -215,7 +186,6 @@ class App {
             } else {
                 let pos = this.windowToCanvas(this.measureCanvas, event.clientX, event.clientY);
                 // 单击开始测距
-                // console.log((pos.x - this.options.imgX) / this.options.imgScale, (pos.y - this.options.imgY) / this.options.imgScale)
                 pos = {
                     x: (pos.x - this.options.imgX) / this.options.imgScale,
                     y: (pos.y - this.options.imgY) / this.options.imgScale
@@ -223,10 +193,6 @@ class App {
                 if (clickNum === 0) {
                     // 第一次单击
                     let obj = {
-                        pointer: {
-                            x: pos.x,
-                            y: pos.y
-                        },
                         move: [{
                             x: pos.x,
                             y: pos.y
@@ -237,15 +203,12 @@ class App {
                 } else {
                     // 多次选点
                     let index = this.options.measure.length
-                    let pointer = this.options.measure[index - 1].pointer
                     let arr = this.options.measure[index - 1].move
-                    // debugger
                     let lastPoint = arr[arr.length - 1]
                     pos = {
                         x: pos.x,
                         y: pos.y,
                     }
-                    Object.assign(pointer, pos)
                     arr.push(pos)
                 }
 
@@ -317,6 +280,7 @@ class App {
             let pos = this.windowToCanvas(this.mapCanvas, event.clientX, event.clientY);
             let mousemoveListener = event => {
                 $container.style.cursor = "move";
+                isMoveMap = true
                 let pos1 = this.windowToCanvas(this.mapCanvas, event.clientX, event.clientY);
                 let x = pos1.x - pos.x;
                 let y = pos1.y - pos.y;
@@ -333,6 +297,10 @@ class App {
             }
             let mouseupListener = event => {
                 judgeBorder()
+                // 屏蔽移动地图后触发的测距点击事件
+                setTimeout(() => {
+                    isMoveMap = false
+                }, 200)
                 this.drawMap();
                 this.drawPeople();
                 // 重绘测距图层
@@ -348,12 +316,28 @@ class App {
         })
         // 鼠标指针坐标
         $container.addEventListener('mousemove', () => {
+            // 实时鼠标位置
             let {
                 height
             } = this.mapCanvas.getBoundingClientRect();
             let pos = this.windowToCanvas(this.mapCanvas, event.clientX, event.clientY);
             this.options.pointerX = pos.x
             this.options.pointerY = height - pos.y
+
+
+            // 鼠标移动显示人物信息
+
+            // 转换为左下角坐标系
+            pos = {
+                x: (pos.x - this.options.imgX) / this.options.imgScale,
+                y: height - (pos.y - this.options.imgY) / this.options.imgScale
+            }
+            this.options.people.forEach((person, i, people) => {
+                person.showInfo = false
+            })
+            let index = directPeople(pos, this.options.people, 10 / this.options.imgScale)
+            if (index === undefined) return
+            this.options.people[index].showInfo = true
         })
     }
 
@@ -407,6 +391,7 @@ class App {
             color
         }) => {
             let current, last;
+            if (move.length === 0) return
             for (let index in move) {
                 current = move[index];
                 if (index === '0') {
@@ -435,21 +420,32 @@ class App {
             peopleCanvas,
             peopleImage
         } = this;
-        let peopleImgWidth = 30;
-        let peopleImgHeight = 43;
+
+        let peopleImgWidth = 16;
+        let peopleImgHeight = 18;
         let context = peopleCanvas.getContext('2d');
         let {
             height
         } = this.mapCanvas.getBoundingClientRect();
         this.clearCanvas(context);
         options.people.forEach(({
-            move
+            move,
+            name,
+            id,
+            showInfo
         }) => {
+            if (move.length === 0) return
             let position = move[move.length - 1]
             // 切换左下角为坐标原点
             position = {
                 x: position.x * options.imgScale + this.options.imgX - peopleImgWidth / 2,
                 y: (height - position.y) * options.imgScale + this.options.imgY - peopleImgHeight / 2
+            }
+            if (showInfo) {
+                drawPeopleInfo(context, position.x, position.y, {
+                    name,
+                    id
+                })
             }
             context.drawImage(peopleImage, position.x, position.y, peopleImgWidth, peopleImgHeight);
         });
@@ -481,13 +477,11 @@ class App {
                     x: last.x * this.options.imgScale + this.options.imgX,
                     y: last.y * this.options.imgScale + this.options.imgY
                 }
-                // // if (index === `${move.length-1}` && index !== '0') {
                 current = {
                     x: current.x * this.options.imgScale + this.options.imgX,
                     y: current.y * this.options.imgScale + this.options.imgY
                 }
-                // }
-                drawLine(context, '#ff6922', last.x, last.y, current.x, current.y)
+                drawLine(context, '#ff6922', last.x, last.y, current.x, current.y, 2)
                 drawCircle(context, '#ff6922', current.x, current.y, 5)
                 let text = ''
                 if (index === '0') {
@@ -497,7 +491,7 @@ class App {
                     totalLength = totalLength + calculateLength(last.x, last.y, current.x, current.y)
                     text = `${(totalLength/this.options.imgScale).toFixed(2)} m`
                 }
-                drawText(context, current.x, current.y, text)
+                drawMeasureInfo(context, current.x, current.y, text)
             }
         });
     }
