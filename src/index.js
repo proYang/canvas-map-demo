@@ -66,18 +66,22 @@ document.querySelector('.J_add').addEventListener('click', () => {
         height
     } = $app.getBoundingClientRect();
     let id = 1000
-    let x = randomNum(0, width)
-    let y = randomNum(0, height)
-    app.options.people.push({
-        id: id++,
-        imgIndex: randomNum(0, 2),
-        name: Random.cname(),
-        color: randomColor(),
-        move: [{
-            x,
-            y
-        }]
-    })
+    let peopleNum = randomNum(5, 15)
+    for (let i = 0; i < peopleNum; i++) {
+        let x = randomNum(0, width)
+        let y = randomNum(0, height)
+        app.options.people.push({
+            id: id++,
+            imgIndex: randomNum(0, 2),
+            name: Random.cname(),
+            color: randomColor(),
+            move: [{
+                x,
+                y
+            }]
+        })
+    }
+
     // 重绘轨迹，人
     // app.updateCanvas('people')
     // app.updateCanvas('move')
